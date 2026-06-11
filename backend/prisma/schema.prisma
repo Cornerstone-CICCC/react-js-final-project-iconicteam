@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  displayName String @map("display_name")
+  email String
+  password String
+  hashedRefreshToken String? @map("refresh_token")
+  defaultYourCurrency String? @map("default_your_currency")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  trip Trip[]
+
+  @@map("users")
+}
+
+model Trip {
+  id Int @id @default(autoincrement())
+  userId Int @map("user_id")
+  title String
+  startDay DateTime @map("start_day")
+  budget Int
+  yourCurrency String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events Event[]
+
+  @@index([userId])
+  @@map("trips")
+}
+
+
+model Event {
+  id Int @id @default(autoincrement())
+  tripId Int @map("trip_id")
+  date DateTime
+  title String
+  detail String
+  localCurrency String @map("local_currency")
+  priceLocalCurrency Int @map("price_local_currency")
+  priceYourCurrency Int @map("price_your_currency")
+  appliedExchangeRate Decimal @map("applied_exchange_rate") @db.Decimal(18, 8)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  @@index([tripId])
+  @@map("events")
+}
+
+model ExchangeRateSnapshot {
+  id Int @id @default(autoincrement())
+  baseCurrency String @map("base_currency")
+  ratesJson Json @map("rates_json")
+  fetchedAt DateTime @map("fetched_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([baseCurrency])
+  @@map("exchange_rate_snapshots")
+}
