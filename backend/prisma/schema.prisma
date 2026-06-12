@@ -15,7 +15,7 @@ datasource db {
 model User {
   id Int @id @default(autoincrement())
   displayName String @map("display_name")
-  email String
+  email String @unique
   password String
   hashedRefreshToken String? @map("refresh_token")
   defaultYourCurrency String? @map("default_your_currency")
