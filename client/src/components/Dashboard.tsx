@@ -34,7 +34,7 @@ export default function Dashboard() {
   if (selectedTrip) {
     return (
       <div>
-        <Navbar />
+        <Navbar avatar="https://i.pravatar.cc/150?img=47" />
         <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "56px 32px" }}>
           <button
             onClick={() => setSelectedTrip(null)}
@@ -177,7 +177,7 @@ export default function Dashboard() {
   }
   return (
     <div>
-      <Navbar />
+      <Navbar avatar="https://i.pravatar.cc/150?img=47" />
       <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "56px 32px" }}>
         <section
           style={{

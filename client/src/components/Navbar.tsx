@@ -1,6 +1,8 @@
-import avila from "../assets/trips/avila.jpg";
+type NavbarProps = {
+  avatar?: string;
+};
 
-export default function Navbar() {
+export default function Navbar({ avatar }: NavbarProps) {
   return (
     <nav
       style={{
@@ -11,24 +13,20 @@ export default function Navbar() {
         borderBottom: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "14px",
-        }}
-      >
-        <img
-          src={avila}
-          alt="User avatar"
-          style={{
-            width: "52px",
-            height: "52px",
-            borderRadius: "50%",
-            objectFit: "cover",
-            border: "2px solid rgba(255,255,255,0.15)",
-          }}
-        />
+      <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        {avatar && (
+          <img
+            src={avatar}
+            alt="Google profile avatar"
+            style={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: "2px solid rgba(255,255,255,0.15)",
+            }}
+          />
+        )}
 
         <div>
           <h1 style={{ margin: 0, fontSize: "1.8rem" }}>Trip Atlas</h1>
@@ -39,28 +37,29 @@ export default function Navbar() {
       </div>
 
       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-     <button
-  style={{
-    background: "rgba(144, 196, 179, 0.06)",
-    color: "#f5f1e8",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: "999px",
-    padding: "10px 16px",
-    fontWeight: 600,
-    cursor: "pointer",
-  }}
->
-  🌐 EN
-</button>
+        <button
+          style={{
+            background: "rgba(144, 196, 179, 0.06)",
+            color: "#f5f1e8",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: "999px",
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          🌐 EN
+        </button>
+
         <button
           style={{
             background: "rgba(11, 19, 12, 0.88)",
-             color: "#f5f1e8",
+            color: "#f5f1e8",
             border: "1px solid rgba(164, 230, 196, 0.93)",
             borderRadius: "999px",
             padding: "10px 16px",
             fontWeight: 600,
-            cursor: "pointer",  
+            cursor: "pointer",
           }}
         >
           ↪ Logout
