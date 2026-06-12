@@ -6,6 +6,7 @@ type TripCardProps = {
   budget: string;
   startDate: string;
   image: string;
+  onClick?: () => void;
 };
 
 export default function TripCard({
@@ -14,16 +15,18 @@ export default function TripCard({
   budget,
   startDate,
   image,
+  onClick
 }: TripCardProps) {
   return (
  <div
+ onClick={onClick}
   style={{
-    background: "#1e1b4b",
+    background: "#070502",
     borderRadius: "24px",
     padding: "20px",
-    border: "1px solid #4338ca",
+    border: "1px solid #a5db98",
     boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-    transition: "0.3s",
+    transition: "0.3s ease",
     cursor: "pointer",
   }}
 >
@@ -39,7 +42,7 @@ export default function TripCard({
         }}
       />
 
-      <p style={{ color: "#a5b4fc", fontSize: "12px", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "10px" }}>
+      <p style={{ color: "#a5b4fc", fontSize: "12px", letterSpacing: "5px", textTransform: "uppercase", marginBottom: "10px" }}>
         Active Trip
       </p>
 

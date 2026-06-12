@@ -39,27 +39,28 @@ export default function Navbar() {
       </div>
 
       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+     <button
+  style={{
+    background: "rgba(144, 196, 179, 0.06)",
+    color: "#f5f1e8",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "999px",
+    padding: "10px 16px",
+    fontWeight: 600,
+    cursor: "pointer",
+  }}
+>
+  🌐 EN
+</button>
         <button
           style={{
-            background: "rgba(255,255,255,0.06)",
-            color: "#f5f1e8",
-            border: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(11, 19, 12, 0.88)",
+             color: "#f5f1e8",
+            border: "1px solid rgba(164, 230, 196, 0.93)",
             borderRadius: "999px",
             padding: "10px 16px",
             fontWeight: 600,
-          }}
-        >
-          🌐 Language
-        </button>
-
-        <button
-          style={{
-            background: "rgba(124,58,237,0.16)",
-            color: "#f5f1e8",
-            border: "1px solid rgba(124,58,237,0.45)",
-            borderRadius: "999px",
-            padding: "10px 16px",
-            fontWeight: 600,
+            cursor: "pointer",  
           }}
         >
           ↪ Logout
