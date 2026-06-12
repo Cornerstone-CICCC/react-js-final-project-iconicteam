@@ -226,6 +226,46 @@ export default function Dashboard() {
           ))}
         </div>
       </main>
+
+         <footer
+      style={{
+        marginTop: "50px",
+        padding: "40px 32px",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        textAlign: "center",
+      }}
+    >
+      <h3 style={{ color: "#f5f1e8" }}>
+        Trip Atlas
+      </h3>
+
+      <p style={{ color: "#9ca3af" }}>
+        Plan. Track. Explore.
+      </p>
+
+      <p
+        style={{
+          marginTop: "20px",
+          color: "#6b7280",
+          fontSize: "0.9rem",
+        }}
+      >
+        Original concept by Hiroki
+        <br />
+        Frontend redesign  by Karla 
+      </p>
+
+      <p
+        style={{
+          marginTop: "16px",
+          color: "#4b5563",
+          fontSize: "0.8rem",
+        }}
+      >
+        © 2026 Trip Atlas
+      </p>
+    </footer>
+
     </div>
   );
 }

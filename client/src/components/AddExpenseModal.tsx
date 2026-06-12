@@ -153,7 +153,7 @@ const lineStyle = {
 };
 
 const inputStyle = {
-  width: "100%",
+  width: "90%",
   padding: "12px 14px",
   borderRadius: "16px",
   border: "1px solid rgba(165,219,152,0.45)",
