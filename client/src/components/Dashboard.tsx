@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import AddExpenseModal from "./AddExpenseModal";
+import UpdateTripModal from "./UpdateTripModal";
 import Navbar from "./Navbar";
 import TripCard from "./TripCard";
 import NewTripModal from "./NewTripModal";
@@ -10,6 +11,8 @@ import avila from "../assets/trips/avila.jpg";
 import wellington from "../assets/trips/wellington.jpg";
 import easter from "../assets/trips/easter.jpg";
 import pinklake from "../assets/trips/pinklake.jpg";
+
+
 const trips = [
   { title: "Ávila", currency: "€", budget: "4,000", startDate: "17 Jun 2026", image: avila },
   { title: "Wellington", currency: "$", budget: "4,550", startDate: "18 Jun 2026", image: wellington },
@@ -21,6 +24,7 @@ const trips = [
 export default function Dashboard() {
   const [selectedTrip, setSelectedTrip] = useState<string | null>(null);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [expenses, setExpenses] = useState<
   {
     date: string;
@@ -30,6 +34,14 @@ export default function Dashboard() {
     details: string;
   }[]
 >([]);
+
+const [selectedExpense, setSelectedExpense] = useState<{
+  date: string;
+  money: string;
+  currency: string;
+  convertedAmount: string;
+  details: string;
+} | null>(null);
 
   if (selectedTrip) {
     return (
@@ -127,23 +139,11 @@ export default function Dashboard() {
         {expense.money} {expense.currency}
       </p>
       <p>{expense.convertedAmount}</p>
-      <button
-  style={{
-    padding: "8px 14px",
-    borderRadius: "999px",
-    border: "1px solid rgba(165,219,152,0.6)",
-    background: "transparent",
-    color: "#f5f1e8",
-    cursor: "pointer",
-    fontWeight: 600,
-  }}
->
-  Details
-</button>
+      
 
       <div style={{ display: "flex", gap: "8px" }}>
         <button
-          onClick={() => alert(expense.details)}
+          onClick={() => setSelectedExpense(expense)}
           style={{
             padding: "8px 12px",
             borderRadius: "999px",
@@ -175,7 +175,69 @@ export default function Dashboard() {
     </div>
   ))}
 </div>
-          {showExpenseModal && (
+         {selectedExpense && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.65)",
+      backdropFilter: "blur(8px)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 100,
+      padding: "24px",
+    }}
+  >
+    <div
+      style={{
+        background: "#070502",
+        border: "1px solid rgba(165,219,152,0.7)",
+        borderRadius: "24px",
+        padding: "28px",
+        width: "100%",
+        maxWidth: "450px",
+      }}
+    >
+      <h2 style={{ marginBottom: "16px" }}>
+        Expense Details
+      </h2>
+
+      <p>
+        <strong>Date:</strong> {selectedExpense.date}
+      </p>
+
+      <p>
+        <strong>Amount:</strong>{" "}
+        {selectedExpense.money} {selectedExpense.currency}
+      </p>
+
+      <p>
+        <strong>Converted:</strong>{" "}
+        {selectedExpense.convertedAmount}
+      </p>
+
+      <p style={{ marginTop: "18px" }}>
+        {selectedExpense.details}
+      </p>
+
+      <button
+        onClick={() => setSelectedExpense(null)}
+        style={{
+          marginTop: "24px",
+          padding: "12px 18px",
+          borderRadius: "999px",
+          border: "1px solid rgba(255,255,255,0.14)",
+          background: "transparent",
+          color: "#f5f1e8",
+          cursor: "pointer",
+        }}
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)} {showExpenseModal && (
             <AddExpenseModal
   onClose={() => setShowExpenseModal(false)}
   onAddExpense={(expense) => {
@@ -234,10 +296,14 @@ export default function Dashboard() {
               startDate={trip.startDate}
               image={trip.image}
               onClick={() => setSelectedTrip(trip.title)}
+              onUpdate={() => setShowUpdateModal(true)}
             />
           ))}
         </div>
       </main>
+      {showUpdateModal && (
+        <UpdateTripModal onClose={() => setShowUpdateModal(false)} />
+      )}
 
          <footer
       style={{

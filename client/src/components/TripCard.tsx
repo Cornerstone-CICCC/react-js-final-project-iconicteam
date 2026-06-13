@@ -5,6 +5,7 @@ type TripCardProps = {
   startDate: string;
   image: string;
   onClick?: () => void;
+  onUpdate?: () => void;
 };
 
 export default function TripCard({
@@ -14,8 +15,11 @@ export default function TripCard({
   startDate,
   image,
   onClick,
+  onUpdate,
 }: TripCardProps) {
   return (
+    
+    
     <div
       onClick={onClick}
       style={{
@@ -69,6 +73,7 @@ export default function TripCard({
         <button
           onClick={(e) => {
             e.stopPropagation();
+            onUpdate?.();
           }}
           style={smallButtonStyle}
         >
@@ -87,6 +92,7 @@ export default function TripCard({
         >
           Delete
         </button>
+        
       </div>
     </div>
   );
@@ -101,3 +107,4 @@ const smallButtonStyle = {
   cursor: "pointer",
   fontWeight: 600,
 };
+
