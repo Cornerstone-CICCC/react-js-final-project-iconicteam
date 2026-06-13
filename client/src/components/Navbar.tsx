@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { useAuth } from "../context/auth/useAuth";
 
 type NavbarProps = {
@@ -6,8 +7,27 @@ type NavbarProps = {
 
 export default function Navbar({ avatar }: NavbarProps) {
   const { clearAuth } = useAuth()
-  const handleLogout = () => {
-    clearAuth()
+  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL
+  const logout = async () => {
+    if (!confirm("Are you sure to logout?")) return
+    try {
+      const res = await fetch(`${BACKEND_URL}/users/logout`, {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json"
+        },
+        credentials: "include"
+      })
+      if (res.status === 200) {
+        clearAuth()
+        toast.success("Successfully logout")
+        return
+      }
+      toast.error("Failed to logout")
+    } catch (error) {
+      console.error(error)
+      toast.error("Network error")
+    }
   }
   return (
     <nav
@@ -44,7 +64,7 @@ export default function Navbar({ avatar }: NavbarProps) {
 
       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
         <button
-          onClick={handleLogout}
+          onClick={logout}
           style={{
             background: "rgba(11, 19, 12, 0.88)",
             color: "#f5f1e8",

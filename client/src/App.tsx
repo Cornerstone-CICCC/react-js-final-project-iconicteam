@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Dashboard from "./components/Dashboard";
 import { useAuth } from "./context/auth/useAuth";
 import AuthPage from "./components/AuthPage";
+import Loading from "./components/Loading";
 
 function App() {
   const { authStatus, accessToken, checkUserAuthentication, restoreAccessToken } = useAuth();
@@ -22,7 +23,7 @@ function App() {
   }, [])
 
   if (authStatus === "checking") {
-    return <>Loading</>
+    return <Loading />
   }
 
   if (authStatus === "unauthenticated") {
