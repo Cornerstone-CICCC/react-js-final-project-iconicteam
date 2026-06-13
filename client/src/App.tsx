@@ -19,7 +19,7 @@ function App() {
       }
     }
     authCheck()
-  }, [accessToken])
+  }, [])
 
   if (authStatus === "checking") {
     return <>Loading</>
