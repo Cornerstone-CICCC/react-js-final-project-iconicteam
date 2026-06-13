@@ -1,8 +1,14 @@
+import { useAuth } from "../context/auth/useAuth";
+
 type NavbarProps = {
   avatar?: string;
 };
 
 export default function Navbar({ avatar }: NavbarProps) {
+  const { clearAuth } = useAuth()
+  const handleLogout = () => {
+    clearAuth()
+  }
   return (
     <nav
       style={{
@@ -38,20 +44,7 @@ export default function Navbar({ avatar }: NavbarProps) {
 
       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
         <button
-          style={{
-            background: "rgba(144, 196, 179, 0.06)",
-            color: "#f5f1e8",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "999px",
-            padding: "10px 16px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          🌐 EN
-        </button>
-
-        <button
+          onClick={handleLogout}
           style={{
             background: "rgba(11, 19, 12, 0.88)",
             color: "#f5f1e8",

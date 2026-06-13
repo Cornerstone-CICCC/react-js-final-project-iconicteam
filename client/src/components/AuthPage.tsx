@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import LoginScreen from './LoginScreen'
 import GetStartedScreen from './GetStartedScreen'
 

@@ -4,13 +4,21 @@ import { useAuth } from "./context/auth/useAuth";
 import AuthPage from "./components/AuthPage";
 
 function App() {
-  const { authStatus, accessToken, checkUserAuthentication } = useAuth();
+  const { authStatus, accessToken, checkUserAuthentication, restoreAccessToken } = useAuth();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      await checkUserAuthentication(accessToken)
+    // check user's access token, otherwise try to generate it from refresh token
+    const authCheck = async () => {
+      if (accessToken) {
+        const res = await checkUserAuthentication(accessToken)
+        if (res.result === "failure") {
+          void restoreAccessToken()
+        }
+      } else {
+        void restoreAccessToken()
+      }
     }
-    checkAuth()
+    authCheck()
   }, [accessToken])
 
   if (authStatus === "checking") {
