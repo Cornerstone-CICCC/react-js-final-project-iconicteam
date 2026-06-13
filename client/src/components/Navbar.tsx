@@ -1,8 +1,34 @@
+import toast from "react-hot-toast";
+import { useAuth } from "../context/auth/useAuth";
+
 type NavbarProps = {
   avatar?: string;
 };
 
 export default function Navbar({ avatar }: NavbarProps) {
+  const { clearAuth } = useAuth()
+  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL
+  const logout = async () => {
+    if (!confirm("Are you sure to logout?")) return
+    try {
+      const res = await fetch(`${BACKEND_URL}/users/logout`, {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json"
+        },
+        credentials: "include"
+      })
+      if (res.status === 200) {
+        clearAuth()
+        toast.success("Successfully logout")
+        return
+      }
+      toast.error("Failed to logout")
+    } catch (error) {
+      console.error(error)
+      toast.error("Network error")
+    }
+  }
   return (
     <nav
       style={{
@@ -38,20 +64,7 @@ export default function Navbar({ avatar }: NavbarProps) {
 
       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
         <button
-          style={{
-            background: "rgba(144, 196, 179, 0.06)",
-            color: "#f5f1e8",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "999px",
-            padding: "10px 16px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          🌐 EN
-        </button>
-
-        <button
+          onClick={logout}
           style={{
             background: "rgba(11, 19, 12, 0.88)",
             color: "#f5f1e8",
