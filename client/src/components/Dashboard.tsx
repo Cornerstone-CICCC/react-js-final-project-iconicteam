@@ -127,7 +127,19 @@ export default function Dashboard() {
         {expense.money} {expense.currency}
       </p>
       <p>{expense.convertedAmount}</p>
-      <p>{expense.details}</p>
+      <button
+  style={{
+    padding: "8px 14px",
+    borderRadius: "999px",
+    border: "1px solid rgba(165,219,152,0.6)",
+    background: "transparent",
+    color: "#f5f1e8",
+    cursor: "pointer",
+    fontWeight: 600,
+  }}
+>
+  Details
+</button>
 
       <div style={{ display: "flex", gap: "8px" }}>
         <button

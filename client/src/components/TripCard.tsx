@@ -1,5 +1,3 @@
-
-
 type TripCardProps = {
   title: string;
   currency: string;
@@ -15,21 +13,21 @@ export default function TripCard({
   budget,
   startDate,
   image,
-  onClick
+  onClick,
 }: TripCardProps) {
   return (
- <div
- onClick={onClick}
-  style={{
-    background: "#070502",
-    borderRadius: "24px",
-    padding: "20px",
-    border: "1px solid #a5db98",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-    transition: "0.3s ease",
-    cursor: "pointer",
-  }}
->
+    <div
+      onClick={onClick}
+      style={{
+        background: "#070502",
+        borderRadius: "24px",
+        padding: "20px",
+        border: "1px solid #a5db98",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+        transition: "0.3s ease",
+        cursor: "pointer",
+      }}
+    >
       <img
         src={image}
         alt={title}
@@ -46,25 +44,60 @@ export default function TripCard({
         Active Trip
       </p>
 
-      <h2
-  style={{
-    fontSize: "1.8rem",
-    marginBottom: "24px",
-  }}
->
-  ✈ {title}
-</h2>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <h2 style={{ fontSize: "1.8rem", marginBottom: "24px" }}>
+        ✈️ {title}
+      </h2>
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "22px" }}>
         <div>
-          <p style={{ color: "#94a3b8" }}>Budget</p>
-          <h3>{currency}{budget}</h3>
+          <p style={{ color: "#94a3b8" }}>Currency</p>
+          <h3>{currency}</h3>
         </div>
 
         <div>
-          <p style={{ color: "#94a3b8" }}>Start Date</p>
+          <p style={{ color: "#94a3b8" }}>Budget</p>
+          <h3>{budget}</h3>
+        </div>
+
+        <div>
+          <p style={{ color: "#94a3b8" }}>Start</p>
           <h3>{startDate}</h3>
         </div>
+      </div>
+
+      <div style={{ display: "flex", gap: "10px" }}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          style={smallButtonStyle}
+        >
+          Update
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          style={{
+            ...smallButtonStyle,
+            border: "1px solid rgba(255,80,80,0.45)",
+            color: "#ffb4b4",
+          }}
+        >
+          Delete
+        </button>
       </div>
     </div>
   );
 }
+
+const smallButtonStyle = {
+  padding: "8px 14px",
+  borderRadius: "999px",
+  border: "1px solid rgba(165,219,152,0.6)",
+  background: "transparent",
+  color: "#f5f1e8",
+  cursor: "pointer",
+  fontWeight: 600,
+};
