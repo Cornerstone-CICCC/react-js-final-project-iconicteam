@@ -1,21 +1,24 @@
-import { useState } from "react";
-import LoginScreen from "./components/LoginScreen";
-import GetStartedScreen from "./components/GetStartedScreen";
+import { useEffect } from "react";
 import Dashboard from "./components/Dashboard";
+import { useAuth } from "./context/auth/useAuth";
+import AuthPage from "./components/AuthPage";
 
 function App() {
-  const [step, setStep] = useState(0);
+  const { authStatus, accessToken, checkUserAuthentication } = useAuth();
 
-  if (step === 0) {
-    return <LoginScreen onLogin={() => setStep(1)} />;
+  useEffect(() => {
+    const checkAuth = async () => {
+      await checkUserAuthentication(accessToken)
+    }
+    checkAuth()
+  }, [accessToken])
+
+  if (authStatus === "checking") {
+    return <>Loading</>
   }
 
-  if (step === 1) {
-    return (
-      <GetStartedScreen
-        onContinue={() => setStep(2)}
-      />
-    );
+  if (authStatus === "unauthenticated") {
+    return <AuthPage />
   }
 
   return <Dashboard />;
