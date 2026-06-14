@@ -1,12 +1,8 @@
 import toast from "react-hot-toast";
 import { useAuth } from "../context/auth/useAuth";
 
-type NavbarProps = {
-  avatar?: string;
-};
-
-export default function Navbar({ avatar }: NavbarProps) {
-  const { clearAuth } = useAuth()
+export default function Navbar() {
+  const { clearAuth, user } = useAuth()
   const BACKEND_URL = import.meta.env.VITE_API_BASE_URL
   const logout = async () => {
     if (!confirm("Are you sure to logout?")) return
@@ -40,20 +36,6 @@ export default function Navbar({ avatar }: NavbarProps) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-        {avatar && (
-          <img
-            src={avatar}
-            alt="Google profile avatar"
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: "2px solid rgba(255,255,255,0.15)",
-            }}
-          />
-        )}
-
         <div>
           <h1 style={{ margin: 0, fontSize: "1.8rem" }}>Trip Atlas</h1>
           <p style={{ margin: 0, color: "#9ca3af", fontSize: "0.9rem" }}>
@@ -63,6 +45,21 @@ export default function Navbar({ avatar }: NavbarProps) {
       </div>
 
       <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        {user?.displayName ? (
+          <div
+            style={{
+              padding: "10px 16px",
+              borderRadius: "999px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#f5f1e8",
+              fontWeight: 600,
+              letterSpacing: "0.2px",
+            }}
+          >
+            {user.displayName}
+          </div>
+        ) : null}
         <button
           onClick={logout}
           style={{

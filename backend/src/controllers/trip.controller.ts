@@ -49,12 +49,13 @@ const addTrip = async (req: Request, res: Response) => {
     res.status(400).json({ message: parsed.error.issues });
     return;
   }
-  const { title, startDay, budget, yourCurrency } = parsed.data;
+  const { title, startDay, budget, img, yourCurrency } = parsed.data;
   try {
     const newTrip = await tripModel.add(Number(userId), {
       title,
       startDay,
       budget,
+      img,
       yourCurrency,
     });
     if (!newTrip) {
