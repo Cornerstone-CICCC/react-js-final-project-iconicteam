@@ -6,6 +6,7 @@ export const createTripSchema = z.object({
   title: z.string().min(1),
   startDay: z.iso.date(),
   budget: z.number().int().min(1).max(MAX_TRIP_BUDGET),
+  img: z.string().min(1),
   yourCurrency: z.string().min(1),
 });
 
@@ -15,6 +16,7 @@ export const updateTripSchema = z.object({
   title: z.string().min(1).optional(),
   startDay: z.iso.date().optional(),
   budget: z.number().int().min(1).max(MAX_TRIP_BUDGET).optional(),
+  img: z.string().min(1).optional(),
   yourCurrency: z.string().min(1).optional(),
 });
 
