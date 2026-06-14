@@ -319,7 +319,7 @@ export default function Dashboard() {
   if (selectedTrip) {
     return (
       <div>
-        <Navbar avatar="https://i.pravatar.cc/150?img=47" />
+        <Navbar />
         <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "56px 32px" }}>
           <button
             onClick={() => setSelectedTrip(null)}
@@ -469,7 +469,7 @@ export default function Dashboard() {
   return (
     <div>
       <style>{dashboardGridStyles}</style>
-      <Navbar avatar="https://i.pravatar.cc/150?img=47" />
+      <Navbar />
       <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "56px 32px" }}>
         <section
           style={{
