@@ -7,6 +7,8 @@ type TripCardProps = {
   startDate: string;
   image: string;
   onClick?: () => void;
+  onDelete?: () => void;
+  canDelete?: boolean;
 };
 
 export default function TripCard({
@@ -15,7 +17,9 @@ export default function TripCard({
   budget,
   startDate,
   image,
-  onClick
+  onClick,
+  onDelete,
+  canDelete = true,
 }: TripCardProps) {
   return (
  <div
@@ -54,6 +58,36 @@ export default function TripCard({
 >
   ✈ {title}
 </h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "18px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete?.();
+          }}
+          style={{
+            padding: "8px 14px",
+            borderRadius: "999px",
+            border: canDelete
+              ? "1px solid rgba(255,80,80,0.35)"
+              : "1px solid rgba(255,255,255,0.14)",
+            background: canDelete
+              ? "rgba(255,80,80,0.08)"
+              : "rgba(255,255,255,0.04)",
+            color: canDelete ? "#ffb4b4" : "#9ca3af",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          Delete
+        </button>
+      </div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <div>
           <p style={{ color: "#94a3b8" }}>Budget</p>

@@ -1,26 +1,71 @@
-
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import AddExpenseModal from "./AddExpenseModal";
+import Loading from "./Loading";
 import Navbar from "./Navbar";
 import TripCard from "./TripCard";
 import NewTripModal from "./NewTripModal";
-import tokyo from "../assets/trips/tokyo.jpg";
-import chapultepec from "../assets/trips/chapultepec.jpg";
-import avila from "../assets/trips/avila.jpg";
-import wellington from "../assets/trips/wellington.jpg";
-import easter from "../assets/trips/easter.jpg";
-import pinklake from "../assets/trips/pinklake.jpg";
-const trips = [
-  { title: "Ávila", currency: "€", budget: "4,000", startDate: "17 Jun 2026", image: avila },
-  { title: "Wellington", currency: "$", budget: "4,550", startDate: "18 Jun 2026", image: wellington },
-  { title: "Easter Island", currency: "$", budget: "3,200", startDate: "25 Jun 2026", image: easter },
-  { title: "Pink Lake", currency: "$", budget: "5,100", startDate: "30 Jun 2026", image: pinklake },
-  { title: "Tokyo", currency: "¥", budget: "50,000", startDate: "29 Apr 2026", image: tokyo },
-  { title: "CDMX", currency: "$", budget: "2,500", startDate: "12 Aug 2026", image: chapultepec },
-];
+import { useAuth } from "../context/auth/useAuth";
+import type { CreateTripFormData } from "../schema/trip.schema";
+import type { ApiTrip } from "../types/trip.type";
+
+type DisplayTrip = {
+  id: string;
+  title: string;
+  currency: string;
+  budget: string;
+  startDate: string;
+  image: string;
+  apiId: number | null;
+};
+
+const formatBudgetValue = (amount: number) =>
+  new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+  }).format(amount);
+
+const getCurrencySymbol = (currencyCode: string) => {
+  try {
+    return (
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currencyCode,
+        currencyDisplay: "narrowSymbol",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })
+        .formatToParts(0)
+        .find((part) => part.type === "currency")?.value ?? currencyCode
+    );
+  } catch {
+    return currencyCode;
+  }
+};
+
+const formatStartDate = (dateInput: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(dateInput));
+
+const mapApiTripToDisplayTrip = (trip: ApiTrip): DisplayTrip => ({
+  id: `api-${trip.id}`,
+  title: trip.title,
+  currency: getCurrencySymbol(trip.yourCurrency),
+  budget: formatBudgetValue(trip.budget),
+  startDate: formatStartDate(trip.startDay),
+  image: trip.img,
+  apiId: trip.id,
+});
+
 export default function Dashboard() {
-  const [selectedTrip, setSelectedTrip] = useState<string | null>(null);
+  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL;
+  const { accessToken } = useAuth();
+  const [selectedTrip, setSelectedTrip] = useState<DisplayTrip | null>(null);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [isLoadingTrips, setIsLoadingTrips] = useState(true);
+  const [savedTrips, setSavedTrips] = useState<DisplayTrip[]>([]);
   const [expenses, setExpenses] = useState<
   {
     date: string;
@@ -30,6 +75,97 @@ export default function Dashboard() {
     details: string;
   }[]
 >([]);
+  const allTrips = useMemo(() => savedTrips, [savedTrips]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setIsLoadingTrips(false);
+      return;
+    }
+
+    const fetchTrips = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/trips`, {
+          method: "GET",
+          headers: {
+            authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch trips: ${response.status}`);
+        }
+
+        const result: ApiTrip[] = await response.json();
+        setSavedTrips(result.map(mapApiTripToDisplayTrip));
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load saved trips.");
+      } finally {
+        setIsLoadingTrips(false);
+      }
+    };
+
+    void fetchTrips();
+  }, [BACKEND_URL, accessToken]);
+
+  if (isLoadingTrips) {
+    return <Loading />;
+  }
+
+  const handleCreateTrip = async (trip: CreateTripFormData) => {
+    const response = await fetch(`${BACKEND_URL}/trips`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(trip),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to save trip: ${response.status}`);
+    }
+
+    const createdTrip: ApiTrip = await response.json();
+    setSavedTrips((currentTrips) => [
+      mapApiTripToDisplayTrip(createdTrip),
+      ...currentTrips,
+    ]);
+    toast.success("Trip saved successfully.");
+  };
+
+  const handleDeleteTrip = async (trip: DisplayTrip) => {
+    if (!trip.apiId) {
+      toast.error("Sample trips cannot be deleted.");
+      return;
+    }
+
+    if (!window.confirm("Are you sure to delete?")) {
+      return;
+    }
+
+    const response = await fetch(`${BACKEND_URL}/trips/${trip.apiId}`, {
+      method: "DELETE",
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete trip: ${response.status}`);
+    }
+
+    setSavedTrips((currentTrips) =>
+      currentTrips.filter((currentTrip) => currentTrip.id !== trip.id),
+    );
+
+    if (selectedTrip?.id === trip.id) {
+      setSelectedTrip(null);
+    }
+
+    toast.success("Trip deleted successfully.");
+  };
 
   if (selectedTrip) {
     return (
@@ -51,7 +187,7 @@ export default function Dashboard() {
             ← Back
           </button>
           <h1 style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}>
-            {selectedTrip}
+            {selectedTrip.title}
           </h1>
           <p style={{ color: "#9ca3af", marginTop: "12px" }}>
             Your travel budget overview
@@ -86,7 +222,9 @@ export default function Dashboard() {
               >
                 <p style={{ color: "#9ca3af", marginBottom: "12px" }}>{item}</p>
                 <h3 style={{ fontSize: "2rem" }}>
-                  {item === "Spent" ? "$0" : "$4,550"}
+                  {item === "Spent"
+                    ? `${selectedTrip.currency}0`
+                    : `${selectedTrip.currency}${selectedTrip.budget}`}
                 </h3>
               </div>
             ))}
@@ -177,6 +315,7 @@ export default function Dashboard() {
   }
   return (
     <div>
+      <style>{dashboardGridStyles}</style>
       <Navbar avatar="https://i.pravatar.cc/150?img=47" />
       <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "56px 32px" }}>
         <section
@@ -204,24 +343,35 @@ export default function Dashboard() {
               Travel overview
             </h2>
           </div>
-          <NewTripModal />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+            }}
+          >
+            <NewTripModal onCreateTrip={handleCreateTrip} />
+          </div>
         </section>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: "24px",
-          }}
-        >
-          {trips.map((trip) => (
+        <div className="dashboard-trip-grid">
+          {allTrips.map((trip) => (
             <TripCard
-              key={trip.title}
+              key={trip.id}
               title={trip.title}
               currency={trip.currency}
               budget={trip.budget}
               startDate={trip.startDate}
               image={trip.image}
-              onClick={() => setSelectedTrip(trip.title)}
+              onClick={() => setSelectedTrip(trip)}
+              onDelete={() => {
+                void handleDeleteTrip(trip).catch((error) => {
+                  console.error(error);
+                  toast.error("Failed to delete the trip.");
+                });
+              }}
+              canDelete={trip.apiId !== null}
             />
           ))}
         </div>
@@ -269,3 +419,23 @@ export default function Dashboard() {
     </div>
   );
 }
+
+const dashboardGridStyles = `
+.dashboard-trip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-trip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-trip-grid {
+    grid-template-columns: 1fr;
+  }
+}
+`;
