@@ -1,7 +1,9 @@
 import { useState } from "react";
+import CurrencyCombobox from "./CurrencyCombobox";
 
 export default function NewTripModal() {
   const [isOpen, setIsOpen] = useState(false);
+  const [currency, setCurrency] = useState("USD");
 
   return (
     <>
@@ -81,14 +83,11 @@ export default function NewTripModal() {
                 style={inputStyle}
               />
 
-              <select style={inputStyle}>
-                <option>Currency</option>
-                <option>USD</option>
-                <option>CAD</option>
-                <option>MXN</option>
-                <option>YEN</option>
-                <option>EUR</option>
-              </select>
+              <CurrencyCombobox
+                value={currency}
+                onChange={setCurrency}
+                placeholder="Select currency"
+              />
 
               <input
                 placeholder="Budget"
@@ -147,11 +146,12 @@ export default function NewTripModal() {
 }
 
 const inputStyle = {
-  width: "95%",
+  width: "100%",
   padding: "12px 14px",
   borderRadius: "16px",
   border: "1px solid rgba(29, 97, 71, 0.78)",
   background: "rgba(255,255,255,0.06)",
   color: "#f5f1e8",
   fontSize: "0.95rem",
+  boxSizing: "border-box" as const,
 };
