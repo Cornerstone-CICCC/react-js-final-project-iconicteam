@@ -2,7 +2,6 @@
 
 import eventModel from "../models/event.model";
 import { CreateEventBody, UpdateEventBody } from "../schemas/event.schema";
-
 import { getExchangeRate } from "./exchange-rate.service";
 
 const MAX_EVENT_PRICE = 2147483647;

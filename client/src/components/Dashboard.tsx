@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import AddExpenseModal from "./AddExpenseModal";
@@ -7,6 +8,8 @@ import TripCard from "./TripCard";
 import NewTripModal from "./NewTripModal";
 import { useAuth } from "../context/auth/useAuth";
 import type { CreateTripFormData } from "../schema/trip.schema";
+import type { ExpenseFormData } from "./AddExpenseModal";
+import type { ApiEvent } from "../types/event.type";
 import type { ApiTrip } from "../types/trip.type";
 
 type DisplayTrip = {
@@ -14,6 +17,7 @@ type DisplayTrip = {
   title: string;
   currency: string;
   budget: string;
+  budgetAmount: number;
   startDate: string;
   image: string;
   apiId: number | null;
@@ -54,10 +58,21 @@ const mapApiTripToDisplayTrip = (trip: ApiTrip): DisplayTrip => ({
   title: trip.title,
   currency: getCurrencySymbol(trip.yourCurrency),
   budget: formatBudgetValue(trip.budget),
+  budgetAmount: trip.budget,
   startDate: formatStartDate(trip.startDay),
   image: trip.img,
   apiId: trip.id,
 });
+
+type DisplayExpense = {
+  id: number;
+  date: string;
+  money: string;
+  currency: string;
+  convertedAmount: string;
+  convertedAmountValue: number;
+  details: string;
+};
 
 export default function Dashboard() {
   const BACKEND_URL = import.meta.env.VITE_API_BASE_URL;
@@ -66,16 +81,29 @@ export default function Dashboard() {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [isLoadingTrips, setIsLoadingTrips] = useState(true);
   const [savedTrips, setSavedTrips] = useState<DisplayTrip[]>([]);
-  const [expenses, setExpenses] = useState<
-  {
-    date: string;
-    money: string;
-    currency: string;
-    convertedAmount: string;
-    details: string;
-  }[]
->([]);
+  const [expenses, setExpenses] = useState<DisplayExpense[]>([]);
   const allTrips = useMemo(() => savedTrips, [savedTrips]);
+  const spentAmount = useMemo(
+    () =>
+      expenses.reduce(
+        (total, expense) => total + expense.convertedAmountValue,
+        0,
+      ),
+    [expenses],
+  );
+  const remainingAmount = selectedTrip
+    ? Math.max(selectedTrip.budgetAmount - spentAmount, 0)
+    : 0;
+
+  const mapApiEventToDisplayExpense = (event: ApiEvent): DisplayExpense => ({
+    id: event.id,
+    date: formatStartDate(event.date),
+    money: formatBudgetValue(event.priceLocalCurrency),
+    currency: event.localCurrency,
+    convertedAmount: formatBudgetValue(event.priceYourCurrency),
+    convertedAmountValue: event.priceYourCurrency,
+    details: event.detail,
+  });
 
   useEffect(() => {
     if (!accessToken) {
@@ -108,6 +136,39 @@ export default function Dashboard() {
 
     void fetchTrips();
   }, [BACKEND_URL, accessToken]);
+
+  useEffect(() => {
+    if (!selectedTrip?.apiId || !accessToken) {
+      setExpenses([]);
+      return;
+    }
+
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(
+          `${BACKEND_URL}/trips/${selectedTrip.apiId}/events`,
+          {
+            method: "GET",
+            headers: {
+              authorization: `Bearer ${accessToken}`,
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch events: ${response.status}`);
+        }
+
+        const result: ApiEvent[] = await response.json();
+        setExpenses(result.map(mapApiEventToDisplayExpense));
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load expenses.");
+      }
+    };
+
+    void fetchEvents();
+  }, [BACKEND_URL, accessToken, selectedTrip?.apiId]);
 
   if (isLoadingTrips) {
     return <Loading />;
@@ -167,6 +228,94 @@ export default function Dashboard() {
     toast.success("Trip deleted successfully.");
   };
 
+  const handleAddExpense = async (expense: ExpenseFormData) => {
+    if (!selectedTrip?.apiId) {
+      throw new Error("No selected trip.");
+    }
+
+    const response = await fetch(
+      `${BACKEND_URL}/trips/${selectedTrip.apiId}/events`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          date: expense.date,
+          title: expense.details.trim() || "Expense",
+          detail: expense.details,
+          localCurrency: expense.currency,
+          priceLocalCurrency: Number(expense.money),
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to save expense: ${response.status}`);
+    }
+
+    const createdEvent: ApiEvent = await response.json();
+    setExpenses((currentExpenses) => [
+      mapApiEventToDisplayExpense(createdEvent),
+      ...currentExpenses,
+    ]);
+    toast.success("Expense saved successfully.");
+  };
+
+  const handleConvertExpense = async ({
+    money,
+    currency,
+  }: {
+    money: string;
+    currency: string;
+  }) => {
+    if (!selectedTrip?.apiId) {
+      throw new Error("No selected trip.");
+    }
+
+    const response = await fetch(
+      `${BACKEND_URL}/trips/${selectedTrip.apiId}/events/exchange-rate-preview?localCurrency=${encodeURIComponent(currency)}`,
+      {
+        method: "GET",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get exchange rate preview: ${response.status}`);
+    }
+
+    const preview: {
+      localCurrency: string;
+      yourCurrency: string;
+      appliedExchangeRate: number;
+    } = await response.json();
+
+    const convertedAmount = Math.round(Number(money) * preview.appliedExchangeRate);
+    return formatBudgetValue(convertedAmount);
+  };
+
+  const handleDeleteExpense = async (expenseId: number) => {
+    const response = await fetch(`${BACKEND_URL}/events/${expenseId}`, {
+      method: "DELETE",
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete expense: ${response.status}`);
+    }
+
+    setExpenses((currentExpenses) =>
+      currentExpenses.filter((expense) => expense.id !== expenseId),
+    );
+    toast.success("Expense deleted successfully.");
+  };
+
   if (selectedTrip) {
     return (
       <div>
@@ -222,9 +371,11 @@ export default function Dashboard() {
               >
                 <p style={{ color: "#9ca3af", marginBottom: "12px" }}>{item}</p>
                 <h3 style={{ fontSize: "2rem" }}>
-                  {item === "Spent"
-                    ? `${selectedTrip.currency}0`
-                    : `${selectedTrip.currency}${selectedTrip.budget}`}
+                  {item === "Budget"
+                    ? `${selectedTrip.currency}${selectedTrip.budget}`
+                    : item === "Spent"
+                      ? `${selectedTrip.currency}${formatBudgetValue(spentAmount)}`
+                      : `${selectedTrip.currency}${formatBudgetValue(remainingAmount)}`}
                 </h3>
               </div>
             ))}
@@ -246,68 +397,70 @@ export default function Dashboard() {
             + Add Expense
           </button>
           <div style={{ marginTop: "32px", display: "grid", gap: "14px" }}>
-  {expenses.map((expense, index) => (
-    <div
-      key={index}
-      style={{
-        background: "#070502",
-        border: "1px solid rgba(165,219,152,0.45)",
-        borderRadius: "18px",
-        padding: "18px",
-        display: "grid",
-        gridTemplateColumns: "1.2fr 1fr 1fr 1fr auto",
-        alignItems: "center",
-        gap: "12px",
-      }}
-    >
-      <p>{expense.date}</p>
-      <p>
-        {expense.money} {expense.currency}
-      </p>
-      <p>{expense.convertedAmount}</p>
-      <p>{expense.details}</p>
+            {expenses.map((expense) => (
+              <div
+                key={expense.id}
+                style={{
+                  background: "#070502",
+                  border: "1px solid rgba(165,219,152,0.45)",
+                  borderRadius: "18px",
+                  padding: "18px",
+                  display: "grid",
+                  gridTemplateColumns: "1.2fr 1fr 1fr 1fr auto",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <p>{expense.date}</p>
+                <p>
+                  {expense.money} {expense.currency}
+                </p>
+                <p>{expense.convertedAmount}</p>
+                <p>{expense.details}</p>
 
-      <div style={{ display: "flex", gap: "8px" }}>
-        <button
-          onClick={() => alert(expense.details)}
-          style={{
-            padding: "8px 12px",
-            borderRadius: "999px",
-            border: "1px solid rgba(255,255,255,0.14)",
-            background: "transparent",
-            color: "#f5f1e8",
-            cursor: "pointer",
-          }}
-        >
-          Details
-        </button>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => alert(expense.details)}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "999px",
+                      border: "1px solid rgba(255,255,255,0.14)",
+                      background: "transparent",
+                      color: "#f5f1e8",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Details
+                  </button>
 
-        <button
-          onClick={() => {
-            setExpenses(expenses.filter((_, i) => i !== index));
-          }}
-          style={{
-            padding: "8px 12px",
-            borderRadius: "999px",
-            border: "1px solid rgba(255,80,80,0.35)",
-            background: "rgba(255,80,80,0.08)",
-            color: "#ffb4b4",
-            cursor: "pointer",
-          }}
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  ))}
-</div>
+                  <button
+                    onClick={() => {
+                      void handleDeleteExpense(expense.id).catch((error) => {
+                        console.error(error);
+                        toast.error("Failed to delete the expense.");
+                      });
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "999px",
+                      border: "1px solid rgba(255,80,80,0.35)",
+                      background: "rgba(255,80,80,0.08)",
+                      color: "#ffb4b4",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
           {showExpenseModal && (
             <AddExpenseModal
-  onClose={() => setShowExpenseModal(false)}
-  onAddExpense={(expense) => {
-    setExpenses([...expenses, expense]);
-  }}
-/>
+              onClose={() => setShowExpenseModal(false)}
+              onAddExpense={handleAddExpense}
+              onConvertExpense={handleConvertExpense}
+            />
           )}
         </main>
       </div>
@@ -377,44 +530,44 @@ export default function Dashboard() {
         </div>
       </main>
 
-         <footer
-      style={{
-        marginTop: "50px",
-        padding: "40px 32px",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
-        textAlign: "center",
-      }}
-    >
-      <h3 style={{ color: "#f5f1e8" }}>
-        Trip Atlas
-      </h3>
-
-      <p style={{ color: "#9ca3af" }}>
-        Plan. Track. Explore.
-      </p>
-
-      <p
+      <footer
         style={{
-          marginTop: "20px",
-          color: "#6b7280",
-          fontSize: "0.9rem",
+          marginTop: "50px",
+          padding: "40px 32px",
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+          textAlign: "center",
         }}
       >
-        Original concept by Hiroki
-        <br />
-        Frontend redesign  by Karla 
-      </p>
+        <h3 style={{ color: "#f5f1e8" }}>
+          Trip Atlas
+        </h3>
 
-      <p
-        style={{
-          marginTop: "16px",
-          color: "#4b5563",
-          fontSize: "0.8rem",
-        }}
-      >
-        © 2026 Trip Atlas
-      </p>
-    </footer>
+        <p style={{ color: "#9ca3af" }}>
+          Plan. Track. Explore.
+        </p>
+
+        <p
+          style={{
+            marginTop: "20px",
+            color: "#6b7280",
+            fontSize: "0.9rem",
+          }}
+        >
+          Original concept by Hiroki
+          <br />
+          Frontend redesign  by Karla
+        </p>
+
+        <p
+          style={{
+            marginTop: "16px",
+            color: "#4b5563",
+            fontSize: "0.8rem",
+          }}
+        >
+          © 2026 Trip Atlas
+        </p>
+      </footer>
 
     </div>
   );

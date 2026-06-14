@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 dotenv.config();
 import cors from "cors";
+import eventRouter from "./routes/event.route";
 import userRouter from "./routes/user.route";
 import tripRouter from "./routes/trip.route";
 
@@ -21,6 +22,7 @@ const PORT = process.env.PORT ?? 4000;
 
 app.use("/users", userRouter);
 app.use("/trips", tripRouter);
+app.use("/", eventRouter);
 
 app.use((req, res) => {
   res.status(404).send("Invalid Page");
