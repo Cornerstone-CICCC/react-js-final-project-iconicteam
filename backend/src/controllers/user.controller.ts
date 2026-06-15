@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import userModel from "../models/user.model";
 import zxcvbn from "zxcvbn";
-import { User } from "../generated/prisma/client";
+import { User } from "@prisma/client";
 import { handlePrismaUserError } from "../lib/prisma.errors";
 import { createUserSchema, loginUserSchema } from "../schemas/user.schema";
 import {

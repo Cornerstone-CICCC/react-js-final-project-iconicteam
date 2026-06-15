@@ -5,6 +5,10 @@
     "target": "es6",
     "module": "Node16",
     "moduleResolution": "node16",
+    "baseUrl": ".",
+    "paths": {
+      ".prisma/client/default": ["./node_modules/.prisma/client/default.d.ts"]
+    },
     "esModuleInterop": true,
     "strict": true
   },
