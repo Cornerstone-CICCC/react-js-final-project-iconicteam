@@ -1,4 +1,4 @@
-import { User } from "../generated/prisma/client";
+import { User } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcrypt";
 import { LoginUserBody } from "../schemas/user.schema";
